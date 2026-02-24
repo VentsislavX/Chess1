@@ -24,6 +24,11 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int BLACK = 1;
     int currentColor = WHITE;
 
+    //BOOLEANS
+
+    boolean canMove;
+    boolean validSquare;
+
 
     public GamePanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -123,20 +128,49 @@ public class GamePanel extends JPanel implements Runnable {
                 simulate();
             }
         }
+
         if(mouse.pressed == false) {
             if(activeP != null) {
-                activeP.updatePositon();
-                activeP = null;
+                if(validSquare) {
+                    //Потвърждаваме хода
+
+                    //Ъпдейтваме листа с фигурите АКО е взета фигура
+                    copyPieces(simPieces , pieces);
+                    activeP.updatePositon();
+                }
+                else {
+                    //Ако хода не е позволен, връщаме оригиналният лист
+                    copyPieces(pieces, simPieces);
+                    activeP.resetPosition();
+                    activeP = null;
+                }
             }
         }
     }
 
 
     private void simulate() {
+        canMove = false;
+        validSquare = false;
+
+        //Рестартираме масива с фигури всеки път когато завъртаме симулацията
+        copyPieces(pieces, simPieces);
+
+        //Ъпдейтва се позицията ако се държи фигура
         activeP.x = mouse.x - Board.HALF_SQUARE_SIZE;
         activeP.y = mouse.y - Board.HALF_SQUARE_SIZE;
         activeP.col = activeP.getCol(activeP.x);
         activeP.row = activeP.getRow(activeP.y);
+
+        //Проверяваме дали фигурата се държи върху позволено поле
+        if(activeP.canMove(activeP.col, activeP.row)) {
+            canMove = true;
+            validSquare = true;
+            //Ако вземем фигура, тя да се премахва от полето
+            if(activeP.hittingPiece != null) {
+                simPieces.remove(activeP.hittingPiece.getIndex());
+            }
+        }
     }
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -149,11 +183,14 @@ public class GamePanel extends JPanel implements Runnable {
             piece.draw(g2);
         }
         if(activeP != null) {
-            g2.setColor(Color.red);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-            g2.fillRect(activeP.col* Board.SQUARE_SIZE, activeP.row* Board.SQUARE_SIZE,
-                    Board.SQUARE_SIZE, Board.SQUARE_SIZE);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            if(canMove) {
+                g2.setColor(Color.red);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                g2.fillRect(activeP.col* Board.SQUARE_SIZE, activeP.row* Board.SQUARE_SIZE,
+                        Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+            }
+            activeP.draw(g2);
         }
     }
 

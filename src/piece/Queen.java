@@ -12,4 +12,22 @@ public class Queen extends Piece {
             image = getImage("/piece/b-queen");
         }
     }
+    public boolean canMove(int targetCol, int targetRow) {
+        if(isWithinTheBoard(targetCol, targetRow) && isSameSquare(targetCol, targetRow) == false) {
+            //Вертикално и хоризонтално
+            if(targetCol == preCol || targetRow == preRow) {
+                if(isValidSquare(targetCol, targetRow)
+                        && pieceOnTheStraightLine(targetCol, targetRow) == false) {
+                    return true;
+                }
+            }
+            //Диагонално
+            if(Math.abs(targetCol - preCol) == Math.abs(targetRow - preRow)) {
+                if(isValidSquare(targetCol, targetRow) && pieceOnTheDiagonal(targetCol, targetRow) == false) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
